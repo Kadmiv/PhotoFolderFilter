@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -22,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -76,6 +78,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     private void createRecycleView() {
         recyclerView = findViewById(R.id.picture_view);
         //manager = new LinearLayoutManager(this);
+        recyclerView.addOnScrollListener(new CustomScrollListener());
         manager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(manager);
         recyclerView.setHasFixedSize(true);
@@ -179,7 +182,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private void createFolder(Context context, String hintTest) {
+    private void createFolder(Context context, String hintText) {
         Environment.getExternalStorageState();
 
         //Получаем вид с файла prompt.xml, который применим для диалогового окна:
@@ -193,8 +196,9 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         mDialogBuilder.setView(promptsView);
 
         //Настраиваем отображение поля для ввода текста в открытом диалоге:
-        final TextView extext = (TextView) promptsView.findViewById(R.id.groupName);
-        extext.setHint(hintTest);
+        final TextInputLayout nameLayout = (TextInputLayout) promptsView.findViewById(R.id.nameLayout);
+        final EditText folderName = (EditText) promptsView.findViewById(R.id.groupName);
+        nameLayout.setHint(hintText);
         // final EditText userInput = (EditText) promptsView.findViewById(R.id.input_text);
 
         //Настраиваем сообщение в диалоговом окне:
@@ -205,7 +209,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 //Вводим текст и отображаем в строке ввода на основном экране:
-                                String name = (String) extext.getText().toString();
+                                String name = (String) folderName.getText().toString();
                                 String newFolder = makeFolder(mainFolderPath, name);
 
                                 Log.d("logM", "New folder group " + newFolder);
@@ -282,6 +286,16 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
             //System.out.println(dir.getAbsolutePath() + " dir name " + dir.getName());
         }
         return folderList;
+    }
+
+    private void loadFilesAndFolders(String mainPath, ArrayList<File> folderList) {
+        Log.d("logM", "Search files in folder = " + mainPath);
+        for (File dir : new File(mainPath).listFiles()) {
+            if (dir.isDirectory()) {
+                folderList.add(dir);
+                //System.out.println(dir.getAbsolutePath() + " dir name " + dir.getName());
+            }
+        }
     }
 
     @Override
@@ -363,6 +377,21 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
                             case "Delete":
                                 Log.d(TAG, "Delete");
                                 File fileForDelete = filesList.get(position);
+                                // Search all file and folders in folder
+                                ArrayList<File> filesInDir = loadFilesAndFolders(fileForDelete.getAbsolutePath());
+                                for (File file : filesInDir) {
+                                    if (file.isDirectory()) {
+                                        loadFilesAndFolders(file.getAbsolutePath(), filesInDir);
+                                    }
+                                }
+                                // Delete all files and folders in dir
+                                while (filesInDir.size() > 0) {
+                                    for (File file : filesInDir) {
+                                        if (file.delete()) {
+                                            filesInDir.remove(file);
+                                        }
+                                    }
+                                }
                                 Toast.makeText(GroupActivity.this, fileForDelete.getAbsolutePath(), Toast.LENGTH_SHORT).show();
                                 fileForDelete.delete();
                             case "Tag Setting":

@@ -1,6 +1,7 @@
 package photofiltercom.gaijin.photofolderfilter;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +28,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -93,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int screenWidth = displaymetrics.widthPixels;
 
         recyclerView = findViewById(R.id.group_view);
+        recyclerView.addOnScrollListener(new CustomScrollListener());
         //manager = new LinearLayoutManager(this);
         manager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(manager);
@@ -172,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (mainFolderPath == "") {
 
                         createFolder(this, "Enter name of main folder", 1);
+                        Toast.makeText(MainActivity.this, "Main folder was created in DCIM folder", Toast.LENGTH_LONG).show();
 
                     } else {
                         createFolder(this, "Enter new group", 2);
@@ -186,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void createFolder(Context context, String hintTest, int dialogButton) {
+    private void createFolder(Context context, String hintText, int dialogButton) {
 
 
         //Получаем вид с файла prompt.xml, который применим для диалогового окна:
@@ -200,8 +206,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDialogBuilder.setView(promptsView);
 
         //Настраиваем отображение поля для ввода текста в открытом диалоге:
-        final TextView extext = (TextView) promptsView.findViewById(R.id.groupName);
-        extext.setHint(hintTest);
+
+        final TextInputLayout nameLayout = (TextInputLayout) promptsView.findViewById(R.id.nameLayout);
+        final EditText folderName = (EditText) promptsView.findViewById(R.id.groupName);
+        nameLayout.setHint(hintText);
         // final EditText userInput = (EditText) promptsView.findViewById(R.id.input_text);
 
         //Настраиваем сообщение в диалоговом окне:
@@ -213,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 public void onClick(DialogInterface dialog, int id) {
                                     //Вводим текст и отображаем в строке ввода на основном экране:
                                     Log.d("logM", "diagonal id" + id);
-                                    String name = (String) extext.getText().toString();
+                                    String name = (String) folderName.getText().toString();
                                     mainFolderPath = makeFolder(ROOT_FOLDER, name);
 
                                     SharedPreferences.Editor editor = mainFolder.edit();
@@ -233,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     //Вводим текст и отображаем в строке ввода на основном экране:
-                                    String name = (String) extext.getText().toString();
+                                    String name = (String) folderName.getText().toString();
                                     String newFolder = makeFolder(mainFolderPath, name);
 
                                     Log.d("logM", "New folder group " + newFolder);
@@ -270,6 +278,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (filesList.size() > 0) {
             adapter.setTaskArrayList(filesList);
             adapter.notifyDataSetChanged();
+        } else {
+            createRecicleView();
         }
     }
 
@@ -309,6 +319,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         return folderList;
+    }
+
+    private void loadFilesAndFolders(String mainPath, ArrayList<File> folderList) {
+        Log.d("logM", "Search files in folder = " + mainPath);
+        for (File dir : new File(mainPath).listFiles()) {
+            folderList.add(dir);
+            //System.out.println(dir.getAbsolutePath() + " dir name " + dir.getName());
+
+        }
     }
 
 
@@ -364,9 +383,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 break;
                             case "Delete":
                                 Log.d(TAG, "Delete");
-                                File fileForDelete = filesList.get(position);
-                                Toast.makeText(MainActivity.this, fileForDelete.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-                                fileForDelete.delete();
+                                try {
+                                    File fileForDelete = filesList.get(position);
+                                    // Search all file and folders in folder
+                                    ArrayList<File> filesInDir = new ArrayList<>();
+                                    loadFilesAndFolders(fileForDelete.getAbsolutePath(), filesInDir);
+                                    for (File file : filesInDir) {
+                                        if (file.isDirectory()) {
+                                            loadFilesAndFolders(file.getAbsolutePath(), filesInDir);
+                                        }
+                                    }
+                                    Log.d(TAG, "File length " + filesInDir.size());
+                                    // Delete all files and folders in dir
+                                    while (filesInDir.size() > 0) {
+                                        for (int i = 0; i < filesInDir.size(); i++) {
+                                            File file = filesInDir.get(i);
+                                            if (file.isDirectory()) {
+                                                if (file.listFiles().length == 0) {
+                                                    if (file.delete()) {
+                                                        Log.d(TAG, "Delete " + file.getAbsolutePath());
+                                                        filesInDir.remove(file);
+                                                    }
+                                                }
+                                            }
+                                            {
+                                                if (file.delete()) {
+                                                    Log.d(TAG, "Delete " + file.getAbsolutePath());
+                                                    filesInDir.remove(file);
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                    Toast.makeText(MainActivity.this, fileForDelete.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+                                    fileForDelete.delete();
+                                } catch (IndexOutOfBoundsException ex) {
+
+                                }
                             case "Tag Setting":
                                 Log.d(TAG, "Set Tag");
 

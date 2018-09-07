@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">PhotoFolderFilter</string>
+    <string name="open">Open</string>
+    <string name="delete">Delete</string>
+    <string name="tag_setting">Tag Setting</string>
+    <string name="copy_tag">Copy Tag</string>
+    <string name="past_tag">Past Tag</string>
+    <string name="select_main_and_make_photo">Select main and make photo</string>
+</resources>

@@ -28,7 +28,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
     /*
     List with contains all task on RecyclerView, for quick repainting
      */
-    ArrayList<File> taskArrayList = new ArrayList<>();
+    ArrayList<String> taskArrayList = new ArrayList<>();
 
     /*
     The following two variables are needed to determine which of the Card we click in the RecyclerViewer
@@ -47,11 +47,11 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
         this.width = (int) ((width - width * 0.01) / 2);
     }
 
-    public TasksAdapter(ArrayList<File> taskArrayList) {
+    public TasksAdapter(ArrayList<String> taskArrayList) {
         this.taskArrayList = taskArrayList;
     }
 
-    public void setTaskArrayList(ArrayList<File> taskArrayList) {
+    public void setTaskArrayList(ArrayList<String> taskArrayList) {
         this.taskArrayList = taskArrayList;
     }
 
@@ -67,7 +67,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
 
     @Override
     public void onBindViewHolder(@NonNull final TasksViewHolder holder, final int position) {
-        File file = taskArrayList.get(position);
+        File file = new File (taskArrayList.get(position));
         holder.name.setText(file.getName());
 
         if (isPicture(file.getName())) {
@@ -121,7 +121,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
         return taskArrayList.size();
     }
 
-    public File getItem(int index) {
+    public String getItem(int index) {
         return taskArrayList.get(index);
     }
 

@@ -36,7 +36,7 @@ import java.util.ArrayList;
  */
 public class GroupActivity extends AppCompatActivity implements View.OnClickListener, TasksAdapter.OnItemClickListener, TasksAdapter.OnLongClickListener, View.OnLongClickListener {
 
-    FloatingActionButton addPhoto;
+    private FloatingActionButton addPhoto;
 
     private static final String MAIN_FOLDER = "MAIN_FOLDER";
 
@@ -49,7 +49,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     RecyclerView.LayoutManager manager;
 
     private String mainFolderPath = "";
-    private ArrayList<File> filesList = null;
+    private ArrayList<String> filesList = null;
     private SharedPreferences mainFolder;
     private int REQUEST_CODE_PHOTO = 123;
     private String TAG = "logM";
@@ -106,18 +106,14 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
             Log.d("logM", "Folder not empty ");
             adapter.setTaskArrayList(filesList);
             adapter.notifyDataSetChanged();
-//            adapter = new TasksAdapter(filesList);
-//            recyclerView.setAdapter(adapter);
-//            adapter.SetOnItemClickListener(this);
-//            adapter.SetOnLongClickListener(this);
+        } else {
+            createRecycleView();
         }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-//        adapter.setTaskArrayList(loadFilesAndFolders(mainFolderPath));
-//        adapter.notifyDataSetChanged();
     }
 
 
@@ -137,8 +133,6 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onRestart() {
         super.onRestart();
-//        adapter.setTaskArrayList(loadFilesAndFolders(mainFolderPath));
-//        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -148,7 +142,11 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
             case R.id.add_picture:
 
                 if (addPhoto.getTag() == CAMERA) {
-                    makePhoto(mainFolderPath, Integer.toString((int) (Math.random() * 100000)) + ".jpg");
+                    PhotoTag tag = new PhotoTag();
+                    String photoName = tag.transformTag("Text→FF_↕Year↕Month↕Day↕hh↕mm↕ss", mainFolderPath);
+                    Log.d("logM", "Tag for photo = " + photoName);
+
+                    makePhoto(mainFolderPath, photoName + ".jpg");
                 } else {
                     createFolder(this, "Enter new group");
                     onResume();
@@ -278,23 +276,31 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private ArrayList<File> loadFilesAndFolders(String mainPath) {
-        ArrayList<File> folderList = new ArrayList<>();
-        Log.d(TAG, "Search files in folder = " + mainPath);
+    /**
+     * Function of loading all folders from specified path
+     *
+     * @param mainPath - specified path for check
+     * @return - list of path for all folder in specified path folder
+     */
+    private ArrayList<String> loadFilesAndFolders(String mainPath) {
+        ArrayList<String> folderList = new ArrayList<>();
+        //Log.d("logM", "Search files in folder = " + mainPath);
         for (File file : new File(mainPath).listFiles()) {
-            folderList.add(file);
-            //System.out.println(dir.getAbsolutePath() + " dir name " + dir.getName());
+            folderList.add(file.getAbsolutePath());
         }
         return folderList;
     }
 
-    private void loadFilesAndFolders(String mainPath, ArrayList<File> folderList) {
+    /**
+     * Function of loading all files and folders from specified path
+     *
+     * @param mainPath   - specified path for check
+     * @param folderList - list for adding path
+     */
+    private void loadFilesAndFolders(String mainPath, ArrayList<String> folderList) {
         Log.d("logM", "Search files in folder = " + mainPath);
-        for (File dir : new File(mainPath).listFiles()) {
-            if (dir.isDirectory()) {
-                folderList.add(dir);
-                //System.out.println(dir.getAbsolutePath() + " dir name " + dir.getName());
-            }
+        for (File file : new File(mainPath).listFiles()) {
+            folderList.add(file.getAbsolutePath());
         }
     }
 
@@ -305,10 +311,11 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
             case R.id.imag_card:
                 //Toast.makeText(this, "clicked " + position, Toast.LENGTH_SHORT).show();
                 Intent intent = null;
-                if (filesList.get(position).isDirectory()) {
+                File checkFile = new File(filesList.get(position));
+                if (checkFile.isDirectory()) {
                     Log.d(TAG, "Folder");
                     intent = new Intent(this, GroupActivity.class);
-                    intent.putExtra(INTENT_PATH, filesList.get(position).getAbsolutePath());
+                    intent.putExtra(INTENT_PATH, filesList.get(position));
 //                Log.d("logM", "Intent must be started");
                     startActivity(intent);
                 } else {
@@ -321,7 +328,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void openPicture(int position, Intent intent) {
-        Uri mOutputFileUri = Uri.fromFile(filesList.get(position));
+        Uri mOutputFileUri = Uri.fromFile(new File(filesList.get(position)));
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
         intent = new Intent(Intent.ACTION_VIEW);
@@ -336,8 +343,8 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
             case R.id.imag_card:
                 //Toast.makeText(this, "clicked " + position, Toast.LENGTH_SHORT).show();
                 PopupMenu popup = new PopupMenu(this, view); //Inflating the Popup using xml file
-
-                if (filesList.get(position).isDirectory()) {
+                File checkFile = new File(filesList.get(position));
+                if (checkFile.isDirectory()) {
                     Log.d(TAG, "Folder");
                     popup.getMenuInflater().inflate(R.menu.folder_popup_menu, popup.getMenu());
                 } else {
@@ -365,10 +372,11 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
                             case "Open":
                                 Log.d(TAG, "Open");
                                 Intent intent = null;
-                                if (filesList.get(position).isDirectory()) {
+                                File checkFile = new File(filesList.get(position));
+                                if (checkFile.isDirectory()) {
                                     Log.d(TAG, "Folder");
                                     intent = new Intent(GroupActivity.this, GroupActivity.class);
-                                    intent.putExtra(INTENT_PATH, filesList.get(position).getAbsolutePath());
+                                    intent.putExtra(INTENT_PATH, checkFile.getAbsolutePath());
                                 } else {
                                     openPicture(position, intent);
                                 }
@@ -376,24 +384,19 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
                                 break;
                             case "Delete":
                                 Log.d(TAG, "Delete");
-                                File fileForDelete = filesList.get(position);
+                                File fileForDelete = new File(filesList.get(position));
                                 // Search all file and folders in folder
-                                ArrayList<File> filesInDir = loadFilesAndFolders(fileForDelete.getAbsolutePath());
-                                for (File file : filesInDir) {
-                                    if (file.isDirectory()) {
-                                        loadFilesAndFolders(file.getAbsolutePath(), filesInDir);
+                                if (fileForDelete.isDirectory()) {
+                                    if (MainActivity.complexDeleting(fileForDelete)) {
+                                        Toast.makeText(GroupActivity.this, fileForDelete.getName(), Toast.LENGTH_SHORT).show();
                                     }
+                                } else {
+                                    fileForDelete.delete();
+                                    Toast.makeText(GroupActivity.this, fileForDelete.getName(), Toast.LENGTH_SHORT).show();
+
                                 }
-                                // Delete all files and folders in dir
-                                while (filesInDir.size() > 0) {
-                                    for (File file : filesInDir) {
-                                        if (file.delete()) {
-                                            filesInDir.remove(file);
-                                        }
-                                    }
-                                }
-                                Toast.makeText(GroupActivity.this, fileForDelete.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-                                fileForDelete.delete();
+
+
                             case "Tag Setting":
                                 Log.d(TAG, "Set Tag");
 

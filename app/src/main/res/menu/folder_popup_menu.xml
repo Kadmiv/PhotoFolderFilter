@@ -1,20 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/make_photo"
-        android:title="@string/select_main_and_make_photo" />
-    <item
         android:id="@+id/open"
         android:title="@string/open" />
     <item
         android:id="@+id/delete"
         android:title="@string/delete" />
-    <item
-        android:id="@+id/tag"
-        android:title="@string/tag_setting" />
-    <item
-        android:id="@+id/tag_copy"
-        android:title="@string/copy_tag" />
-    <item
-        android:id="@+id/tag_past"
-        android:title="@string/past_tag" />
 </menu>

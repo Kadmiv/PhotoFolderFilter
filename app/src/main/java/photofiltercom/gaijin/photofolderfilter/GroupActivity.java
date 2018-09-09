@@ -25,7 +25,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -34,48 +33,47 @@ import java.util.ArrayList;
 /**
  * Created by Kachulyak Ivan.
  */
-public class GroupActivity extends AppCompatActivity implements View.OnClickListener, TasksAdapter.OnItemClickListener, TasksAdapter.OnLongClickListener, View.OnLongClickListener {
+public class GroupActivity extends MyActivity implements View.OnClickListener, TasksAdapter.OnItemClickListener, TasksAdapter.OnLongClickListener, View.OnLongClickListener {
 
-    private FloatingActionButton addPhoto;
-
-    private static final String MAIN_FOLDER = "MAIN_FOLDER";
-
+    /*Tags for floatButton addPhoto, for change bitmap of button*/
     private static final String CAMERA = "CAMERA";
     private static final String FOLDER = "FOLDER";
-    private static final String INTENT_PATH = "Path";
+    /*Request code for intent filter*/
+    private final int REQUEST_CODE_PHOTO = 123;
 
-    RecyclerView recyclerView;
-    TasksAdapter adapter;
-    RecyclerView.LayoutManager manager;
+    /*Component for activity*/
+    private FloatingActionButton addPhoto;
+    private RecyclerView recyclerView;
+    private TasksAdapter adapter;
+    private RecyclerView.LayoutManager manager;
 
-    private String mainFolderPath = "";
-    private ArrayList<String> filesList = null;
-    private SharedPreferences mainFolder;
-    private int REQUEST_CODE_PHOTO = 123;
-    private String TAG = "logM";
-    private File folder;
-
+    /*Animation for part of app*/
     private Animation floatButtonAnimation = null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        floatButtonAnimation = AnimationUtils.loadAnimation(this, R.anim.float_button_anim);
+
+        /*Component initialization*/
         setContentView(R.layout.second_activity);
         addPhoto = (FloatingActionButton) findViewById(R.id.add_picture);
         addPhoto.setOnClickListener(this);
         addPhoto.setOnLongClickListener(this);
         addPhoto.setTag(CAMERA);
+        floatButtonAnimation = AnimationUtils.loadAnimation(this, R.anim.float_button_anim);
 
+        /*Get path to main folder from intent*/
         mainFolderPath = getIntent().getStringExtra(INTENT_PATH);
 
         createRecycleView();
-
-
     }
 
-    private void createRecycleView() {
+    /**
+     * Function of recycle view creation
+     */
+    @MyAnnotation
+    protected void createRecycleView() {
+        /*Initialization of recycle view*/
         recyclerView = findViewById(R.id.picture_view);
         //manager = new LinearLayoutManager(this);
         recyclerView.addOnScrollListener(new CustomScrollListener());
@@ -85,8 +83,8 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         adapter = new TasksAdapter();
         recyclerView.setAdapter(adapter);
 
-        mainFolder = getPreferences(MODE_PRIVATE);
-        folder = new File(mainFolderPath);
+        /*Load name of group folder*/
+        File folder = new File(mainFolderPath);
         if (folder.exists()) {
             filesList = loadFilesAndFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
@@ -99,11 +97,14 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
         adapter.SetOnLongClickListener(this);
     }
 
-
-    private void updateRecycleView() {
-        filesList = loadFilesAndFolders(mainFolderPath + "/");
+    /**
+     * Function of updating of recycle view
+     * View will upload and new view card, if was be create new folders or files
+     */
+    @MyAnnotation(type = 2)
+    protected void updateRecycleView() {
+        filesList = loadFilesAndFolders(mainFolderPath);
         if (filesList.size() > 0) {
-            Log.d("logM", "Folder not empty ");
             adapter.setTaskArrayList(filesList);
             adapter.notifyDataSetChanged();
         } else {
@@ -120,7 +121,7 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onResume() {
         super.onResume();
-        if (folder.exists()) {
+        if (new File(mainFolderPath).exists()) {
             updateRecycleView();
         }
     }
@@ -139,168 +140,73 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
 
         switch (v.getId()) {
+            // Creation of picture or folder
             case R.id.add_picture:
-
                 if (addPhoto.getTag() == CAMERA) {
                     PhotoTag tag = new PhotoTag();
+                    //Calculation of photo name
                     String photoName = tag.transformTag("Text→FF_↕Year↕Month↕Day↕hh↕mm↕ss", mainFolderPath);
-                    Log.d("logM", "Tag for photo = " + photoName);
-
+                    //Log.d(LOG_TAG, "Tag for photo = " + photoName);
                     makePhoto(mainFolderPath, photoName + ".jpg");
                 } else {
-                    createFolder(this, "Enter new group");
+                    createFolder(this, "Enter new group", 2);
                     onResume();
                 }
-
                 break;
-
         }
     }
 
-    private void makePhoto(String path, String name) {
+    /**
+     * This function causes the intent of Camera from MediaStore
+     *
+     * @param path - path for saving photo
+     * @param name - name of new photo
+     */
+    protected void makePhoto(String path, String name) {
         try {
-            // Намерение для запуска камеры
-
             File file = new File(path, name);
+            // Get uri for photo
             Uri mOutputFileUri = Uri.fromFile(file);
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
+            // Put uri to intent
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mOutputFileUri);
-            Log.d("logM", "Put extra name = " + name);
+            Log.d(LOG_TAG, "Put extra name = " + name);
+            // This part of code need for normal work on android 6+
             StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
             StrictMode.setVmPolicy(builder.build());
             startActivityForResult(intent, REQUEST_CODE_PHOTO);
         } catch (ActivityNotFoundException e) {
-            // Выводим сообщение об ошибке
-            String errorMessage = "Возникла ошибка при запуске камеры";
+            String errorMessage = "Error. Camera is not responding";
             Toast toast = Toast
                     .makeText(this, errorMessage, Toast.LENGTH_SHORT);
             toast.show();
-
         }
     }
 
-    private void createFolder(Context context, String hintText) {
-        Environment.getExternalStorageState();
-
-        //Получаем вид с файла prompt.xml, который применим для диалогового окна:
-        LayoutInflater li = LayoutInflater.from(context);
-        View promptsView = li.inflate(R.layout.new_group, null);
-
-        //Создаем AlertDialog
-        AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(context);
-
-        //Настраиваем prompt.xml для нашего AlertDialog:
-        mDialogBuilder.setView(promptsView);
-
-        //Настраиваем отображение поля для ввода текста в открытом диалоге:
-        final TextInputLayout nameLayout = (TextInputLayout) promptsView.findViewById(R.id.nameLayout);
-        final EditText folderName = (EditText) promptsView.findViewById(R.id.groupName);
-        nameLayout.setHint(hintText);
-        // final EditText userInput = (EditText) promptsView.findViewById(R.id.input_text);
-
-        //Настраиваем сообщение в диалоговом окне:
-
-        mDialogBuilder
-                .setCancelable(false)
-                .setPositiveButton("OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                //Вводим текст и отображаем в строке ввода на основном экране:
-                                String name = (String) folderName.getText().toString();
-                                String newFolder = makeFolder(mainFolderPath, name);
-
-                                Log.d("logM", "New folder group " + newFolder);
-
-                                dialog.cancel();
-                                onResume();
-
-                            }
-                        })
-                .setNegativeButton("Cancel",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
-
-
-        //Создаем AlertDialog:
-        AlertDialog alertDialog = mDialogBuilder.create();
-
-
-        //и отображаем его:
-        alertDialog.show();
-
-    }
-
-    private String makeFolder(String mainPath, String name) {
-        String folderPath = mainPath + "/" + name + "/";
-        // добавляем свой каталог к пути
-        // проверка есть ли указаная папка на диске
-
-        File folder = new File(folderPath);
-        Log.d("logM", "Path folder " + folderPath);
-        if (folder.exists() == false) {
-            folder.mkdir();
-
-            Log.d("logM", "Folder is exist " + folder.getAbsolutePath());
-        }
-
-        return folder.getAbsolutePath();
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent intent) {
+        /*Check of work camera intent*/
         if (requestCode == REQUEST_CODE_PHOTO) {
             if (resultCode == RESULT_OK) {
                 if (intent == null) {
-                    Log.d(TAG, "Intent is null");
+                    Log.d(LOG_TAG, "Intent is null");
                 } else {
-                    Log.d(TAG, "Photo uri: " + intent.getData());
+                    Log.d(LOG_TAG, "Photo uri: " + intent.getData());
                     Bundle bndl = intent.getExtras();
                     if (bndl != null) {
                         Object obj = intent.getExtras().get("data");
                         if (obj instanceof Bitmap) {
                             Bitmap bitmap = (Bitmap) obj;
-                            Log.d(TAG, "bitmap " + bitmap.getWidth() + " x "
+                            Log.d(LOG_TAG, "bitmap " + bitmap.getWidth() + " x "
                                     + bitmap.getHeight());
-                            //ivPhoto.setImageBitmap(bitmap);
                         }
                     }
                 }
             } else if (resultCode == RESULT_CANCELED) {
-                Log.d(TAG, "Canceled");
+                Log.d(LOG_TAG, "Canceled");
             }
-        }
-    }
-
-    /**
-     * Function of loading all folders from specified path
-     *
-     * @param mainPath - specified path for check
-     * @return - list of path for all folder in specified path folder
-     */
-    private ArrayList<String> loadFilesAndFolders(String mainPath) {
-        ArrayList<String> folderList = new ArrayList<>();
-        //Log.d("logM", "Search files in folder = " + mainPath);
-        for (File file : new File(mainPath).listFiles()) {
-            folderList.add(file.getAbsolutePath());
-        }
-        return folderList;
-    }
-
-    /**
-     * Function of loading all files and folders from specified path
-     *
-     * @param mainPath   - specified path for check
-     * @param folderList - list for adding path
-     */
-    private void loadFilesAndFolders(String mainPath, ArrayList<String> folderList) {
-        Log.d("logM", "Search files in folder = " + mainPath);
-        for (File file : new File(mainPath).listFiles()) {
-            folderList.add(file.getAbsolutePath());
         }
     }
 
@@ -309,118 +215,30 @@ public class GroupActivity extends AppCompatActivity implements View.OnClickList
 
         switch (view.getId()) {
             case R.id.imag_card:
-                //Toast.makeText(this, "clicked " + position, Toast.LENGTH_SHORT).show();
+                /*Open folder or photo*/
                 Intent intent = null;
                 File checkFile = new File(filesList.get(position));
                 if (checkFile.isDirectory()) {
-                    Log.d(TAG, "Folder");
+                    Log.d(LOG_TAG, "Folder");
                     intent = new Intent(this, GroupActivity.class);
                     intent.putExtra(INTENT_PATH, filesList.get(position));
-//                Log.d("logM", "Intent must be started");
                     startActivity(intent);
                 } else {
-                    Log.d(TAG, "Image");
-                    openPicture(position, intent);
+                    Log.d(LOG_TAG, "Image");
+                    openPicture(filesList.get(position));
                 }
                 break;
         }
 
-    }
-
-    private void openPicture(int position, Intent intent) {
-        Uri mOutputFileUri = Uri.fromFile(new File(filesList.get(position)));
-        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-        StrictMode.setVmPolicy(builder.build());
-        intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(mOutputFileUri, "image/*");
-        startActivity(intent);
     }
 
     @Override
     public void onLongClick(View view, int position) {
-
         switch (view.getId()) {
             case R.id.imag_card:
-                //Toast.makeText(this, "clicked " + position, Toast.LENGTH_SHORT).show();
-                PopupMenu popup = new PopupMenu(this, view); //Inflating the Popup using xml file
-                File checkFile = new File(filesList.get(position));
-                if (checkFile.isDirectory()) {
-                    Log.d(TAG, "Folder");
-                    popup.getMenuInflater().inflate(R.menu.folder_popup_menu, popup.getMenu());
-                } else {
-                    Log.d(TAG, "Image");
-                    popup.getMenuInflater().inflate(R.menu.file_popup_menu, popup.getMenu());
-                }
-
-                //registering popup with OnMenuItemClickListener
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    public boolean onMenuItemClick(MenuItem item) {
-                        //Toast.makeText(GroupActivity.this, "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                        switch (item.getTitle().toString()) {
-                            case "Select main and make photo":
-                                Log.d(TAG, "Set Tag");
-                                // Проходим по всем папка методом в глубину
-
-                                // Если папка содержит тег МаинФолдер, тогда добавляем его в список
-
-                                // Выводим чеклист со всем папками , которые имеют тег МаинФолдер.
-
-                                // После этого открываем активити для фотографирования и делаем фотки
-                                // с указаным тегом в указаную папку.
-
-                                break;
-                            case "Open":
-                                Log.d(TAG, "Open");
-                                Intent intent = null;
-                                File checkFile = new File(filesList.get(position));
-                                if (checkFile.isDirectory()) {
-                                    Log.d(TAG, "Folder");
-                                    intent = new Intent(GroupActivity.this, GroupActivity.class);
-                                    intent.putExtra(INTENT_PATH, checkFile.getAbsolutePath());
-                                } else {
-                                    openPicture(position, intent);
-                                }
-                                startActivity(intent);
-                                break;
-                            case "Delete":
-                                Log.d(TAG, "Delete");
-                                File fileForDelete = new File(filesList.get(position));
-                                // Search all file and folders in folder
-                                if (fileForDelete.isDirectory()) {
-                                    if (MainActivity.complexDeleting(fileForDelete)) {
-                                        Toast.makeText(GroupActivity.this, fileForDelete.getName(), Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    fileForDelete.delete();
-                                    Toast.makeText(GroupActivity.this, fileForDelete.getName(), Toast.LENGTH_SHORT).show();
-
-                                }
-
-
-                            case "Tag Setting":
-                                Log.d(TAG, "Set Tag");
-
-                                break;
-                            case "Copy Tag":
-                                Log.d(TAG, "Set Tag");
-
-                                break;
-                            case "Past Tag":
-                                Log.d(TAG, "Set Tag");
-
-                                break;
-                            default:
-
-                        }
-                        updateRecycleView();
-                        return true;
-                    }
-                });
-                popup.show(); //showing popup men
-
+                showPopupMenu(this, view, position, filesList);
                 break;
         }
-
     }
 
     @Override

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
 
-public class MainActivity extends MyActivity implements View.OnClickListener, TasksAdapter.OnItemClickListener, TasksAdapter.OnLongClickListener {
+public class MainActivity extends MyActivity implements View.OnClickListener, FileAdapter.OnItemClickListener, FileAdapter.OnLongClickListener {
 
     /*For log text, name of activity*/
     private String MAIN = " MainActivity";
@@ -36,7 +36,7 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Ta
     /*Component for activity*/
     private FloatingActionButton addGroup;
     private RecyclerView recyclerView;
-    private TasksAdapter adapter;
+    private FileAdapter adapter;
     private RecyclerView.LayoutManager manager;
 
     @Override
@@ -85,7 +85,7 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Ta
         recyclerView.setHasFixedSize(true);
 
         /*Initialization of adapter for  recycle view*/
-        adapter = new TasksAdapter(screenWidth);
+        adapter = new FileAdapter(screenWidth);
         recyclerView.setAdapter(adapter);
 
         /*Load name of root user folder*/
@@ -96,7 +96,7 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Ta
         if (folder.exists()) {
             filesList = loadFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
-                adapter = new TasksAdapter(filesList);
+                adapter = new FileAdapter(filesList);
                 recyclerView.setAdapter(adapter);
             }
         }
@@ -112,7 +112,7 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Ta
     protected void updateRecycleView() {
         filesList = loadFolders(mainFolderPath);
         if (filesList.size() > 0) {
-            adapter.setTaskArrayList(filesList);
+            adapter.setFileArrayList(filesList);
             adapter.notifyDataSetChanged();
         } else {
             createRecycleView();

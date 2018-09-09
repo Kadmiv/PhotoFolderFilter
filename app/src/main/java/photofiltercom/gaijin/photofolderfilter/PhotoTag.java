@@ -10,6 +10,11 @@ import java.util.List;
 
 /**
  * Created by Kachulyak Ivan.
+ *
+ * This class need for calculation tag for folder.
+ *
+ * In future this tag will be used to a specific folder.
+ * The behavior of folders and files will be subject to the tag.
  */
 public class PhotoTag {
 

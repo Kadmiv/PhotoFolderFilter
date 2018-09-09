@@ -1,39 +1,27 @@
 package photofiltercom.gaijin.photofolderfilter;
 
 import android.content.ActivityNotFoundException;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.EditText;
-import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * Created by Kachulyak Ivan.
  */
-public class GroupActivity extends MyActivity implements View.OnClickListener, TasksAdapter.OnItemClickListener, TasksAdapter.OnLongClickListener, View.OnLongClickListener {
+public class GroupActivity extends MyActivity implements View.OnClickListener, FileAdapter.OnItemClickListener, FileAdapter.OnLongClickListener, View.OnLongClickListener {
 
     /*Tags for floatButton addPhoto, for change bitmap of button*/
     private static final String CAMERA = "CAMERA";
@@ -44,7 +32,7 @@ public class GroupActivity extends MyActivity implements View.OnClickListener, T
     /*Component for activity*/
     private FloatingActionButton addPhoto;
     private RecyclerView recyclerView;
-    private TasksAdapter adapter;
+    private FileAdapter adapter;
     private RecyclerView.LayoutManager manager;
 
     /*Animation for part of app*/
@@ -80,7 +68,7 @@ public class GroupActivity extends MyActivity implements View.OnClickListener, T
         manager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(manager);
         recyclerView.setHasFixedSize(true);
-        adapter = new TasksAdapter();
+        adapter = new FileAdapter();
         recyclerView.setAdapter(adapter);
 
         /*Load name of group folder*/
@@ -88,7 +76,7 @@ public class GroupActivity extends MyActivity implements View.OnClickListener, T
         if (folder.exists()) {
             filesList = loadFilesAndFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
-                adapter = new TasksAdapter(filesList);
+                adapter = new FileAdapter(filesList);
                 recyclerView.setAdapter(adapter);
             }
         }
@@ -105,7 +93,7 @@ public class GroupActivity extends MyActivity implements View.OnClickListener, T
     protected void updateRecycleView() {
         filesList = loadFilesAndFolders(mainFolderPath);
         if (filesList.size() > 0) {
-            adapter.setTaskArrayList(filesList);
+            adapter.setFileArrayList(filesList);
             adapter.notifyDataSetChanged();
         } else {
             createRecycleView();

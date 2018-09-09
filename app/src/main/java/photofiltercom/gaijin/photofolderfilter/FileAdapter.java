@@ -1,8 +1,6 @@
 package photofiltercom.gaijin.photofolderfilter;
 
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.CardView;
@@ -10,9 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.File;
@@ -23,51 +19,51 @@ import java.util.ArrayList;
  * <p>
  * This class was created to work with objects of the class Task in the database
  */
-public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHolder> {
+public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder> {
 
     /*
     List with contains all task on RecyclerView, for quick repainting
      */
-    ArrayList<String> taskArrayList = new ArrayList<>();
+    ArrayList<String> fileArrayList = new ArrayList<>();
 
     /*
     The following two variables are needed to determine which of the Card we click in the RecyclerViewer
     */
 
-    private OnItemClickListener TasksItemClickListener;
-    private OnLongClickListener TasksOnLongClickListener;
+    private OnItemClickListener ItemClickListener;
+    private OnLongClickListener OnLongClickListener;
     private static int width = 0;
 
 
-    public TasksAdapter() {
+    public FileAdapter() {
 
     }
 
-    public TasksAdapter(int width) {
+    public FileAdapter(int width) {
         this.width = (int) ((width - width * 0.01) / 2);
     }
 
-    public TasksAdapter(ArrayList<String> taskArrayList) {
-        this.taskArrayList = taskArrayList;
+    public FileAdapter(ArrayList<String> taskArrayList) {
+        this.fileArrayList = taskArrayList;
     }
 
-    public void setTaskArrayList(ArrayList<String> taskArrayList) {
-        this.taskArrayList = taskArrayList;
+    public void setFileArrayList(ArrayList<String> fileArrayList) {
+        this.fileArrayList = fileArrayList;
     }
 
 
     @NonNull
     @Override
-    public TasksViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public FileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.folder_group, parent, false);
-        TasksViewHolder holder = new TasksViewHolder(view);
+        FileViewHolder holder = new FileViewHolder(view);
 
         return holder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final TasksViewHolder holder, final int position) {
-        File file = new File (taskArrayList.get(position));
+    public void onBindViewHolder(@NonNull final FileViewHolder holder, final int position) {
+        File file = new File (fileArrayList.get(position));
         holder.name.setText(file.getName());
 
         if (isPicture(file.getName())) {
@@ -118,11 +114,11 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
 
     @Override
     public int getItemCount() {
-        return taskArrayList.size();
+        return fileArrayList.size();
     }
 
     public String getItem(int index) {
-        return taskArrayList.get(index);
+        return fileArrayList.get(index);
     }
 
     public interface OnItemClickListener {
@@ -130,7 +126,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
     }
 
     public void SetOnItemClickListener(final OnItemClickListener tasksItemClickListener) {
-        this.TasksItemClickListener = tasksItemClickListener;
+        this.ItemClickListener = tasksItemClickListener;
     }
 
     public interface OnLongClickListener {
@@ -138,10 +134,10 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
     }
 
     public void SetOnLongClickListener(final OnLongClickListener tasksOnLongClickListener) {
-        this.TasksOnLongClickListener = tasksOnLongClickListener;
+        this.OnLongClickListener = tasksOnLongClickListener;
     }
 
-    public class TasksViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+    public class FileViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         /* These are the variables that are included in the Cardview*/
         TextView name;
@@ -149,7 +145,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
         CardView card;
         ConstraintLayout container;
 
-        public TasksViewHolder(View itemView) {
+        public FileViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.group_name);
             image = itemView.findViewById(R.id.imag_card);
@@ -169,16 +165,16 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TasksViewHol
         @Override
         public void onClick(View view) {
 
-            if (TasksItemClickListener != null) {
-                TasksItemClickListener.onItemClick(view, getAdapterPosition());
+            if (ItemClickListener != null) {
+                ItemClickListener.onItemClick(view, getAdapterPosition());
             }
 
         }
 
         @Override
         public boolean onLongClick(View view) {
-            if (TasksOnLongClickListener != null) {
-                TasksOnLongClickListener.onLongClick(view, getAdapterPosition());
+            if (OnLongClickListener != null) {
+                OnLongClickListener.onLongClick(view, getAdapterPosition());
             }
             return true;
         }

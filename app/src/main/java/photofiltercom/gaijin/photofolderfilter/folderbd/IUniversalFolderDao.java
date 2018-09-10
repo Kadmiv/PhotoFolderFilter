@@ -33,9 +33,9 @@ public interface IUniversalFolderDao {
     UniversalFolder getById(int id);
 
     @Query("SELECT * FROM universalfolder WHERE folderName=:folderName")
-    Task getByName(String folderName);
+    UniversalFolder getByName(String folderName);
 
     @Query("SELECT * FROM universalfolder")
-    List<Task> getAll();
+    List<UniversalFolder> getAll();
 
 }

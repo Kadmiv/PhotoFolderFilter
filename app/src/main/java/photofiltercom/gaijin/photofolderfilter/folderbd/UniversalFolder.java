@@ -1,4 +1,4 @@
-package photofiltercom.gaijin.photofolderfilter;
+package photofiltercom.gaijin.photofolderfilter.folderbd;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
@@ -20,7 +20,7 @@ public class UniversalFolder extends File {
 
     @PrimaryKey(autoGenerate = true)
     int id;
-
+    private String folderName;
     private String picturePath;
     private String tagFolder;
 
@@ -60,6 +60,14 @@ public class UniversalFolder extends File {
 
     public void setPicturePath(String picturePath) {
         this.picturePath = picturePath;
+    }
+
+    public String getFolderName() {
+        return folderName;
+    }
+
+    public void setFolderName(String folderName) {
+        this.folderName = folderName;
     }
 
     public String getTagFolder() {

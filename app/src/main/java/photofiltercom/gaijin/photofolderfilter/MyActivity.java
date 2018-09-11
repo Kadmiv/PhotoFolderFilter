@@ -188,21 +188,21 @@ public class MyActivity extends AppCompatActivity {
                         Toast.makeText((Context) activity, infos, Toast.LENGTH_SHORT).show();
                         break;
                     // FIXME: 09.09.2018 Next for future version
-                    case "Select main and make photo":
-                        Log.d(LOG_TAG, "Set Tag");
-                        // DFS
-                        break;
-                    case "Tag Setting":
-                        Log.d(LOG_TAG, "Set Tag");
+                    case "Copy":
+                        Log.d(LOG_TAG, "Copy");
 
                         break;
-                    case "Copy Tag":
-                        Log.d(LOG_TAG, "Set Tag");
+                    case "Past":
+                        Log.d(LOG_TAG, "Past");
 
                         break;
-                    case "Past Tag":
-                        Log.d(LOG_TAG, "Set Tag");
-
+                    case "Settings":
+                        Log.d(LOG_TAG, "Setting");
+                        Intent intent = null;
+                        //Log.d(LOG_TAG, "Folder");
+                        intent = new Intent((Context) activity, SettingFolderActivity.class);
+                        intent.putExtra(INTENT_PATH, filesList.get(position));
+                        startActivity(intent);
                         break;
                     default:
 

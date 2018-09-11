@@ -22,6 +22,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 
+import photofiltercom.gaijin.photofolderfilter.folderbd.AppDB;
+
 import static java.lang.Thread.sleep;
 
 public class MainActivity extends MyActivity implements View.OnClickListener, FileAdapter.OnItemClickListener, FileAdapter.OnLongClickListener {
@@ -52,6 +54,7 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Fi
         addGroup = (FloatingActionButton) findViewById(R.id.addGroup);
         addGroup.setOnClickListener(this);
         createRecycleView();
+        appDatabase = AppDB.getDatabase(getApplicationContext());
     }
 
     /**

@@ -26,6 +26,10 @@ import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import photofiltercom.gaijin.photofolderfilter.folderbd.AppDB;
 
 /**
  * Created by Kachulyak Ivan.
@@ -52,6 +56,12 @@ public class MyActivity extends AppCompatActivity {
     protected SharedPreferences mainFolder;
     /*List which contains paths all files and folder in current folder. This list need for RecyclerView*/
     protected ArrayList<String> filesList = null;
+
+    protected List<String> folderMenuItems = Arrays.asList("Open", "Delete", "Copy", "Past", "Settings");
+    protected List<String> photoMenuItems = Arrays.asList("Open", "Delete");
+
+    // Database of application
+    protected static AppDB appDatabase;
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -128,14 +138,24 @@ public class MyActivity extends AppCompatActivity {
      */
     protected void showPopupMenu(Object activity, View view, int position, ArrayList<String> filesList) {
         PopupMenu popup = new PopupMenu((Context) activity, view); //Inflating the Popup using xml file
+        popup.getMenuInflater().inflate(R.menu.empty_popup_menu, popup.getMenu());
         File fileForCheck = new File(filesList.get(position));
+        List<String> items = null;
         if (fileForCheck.isDirectory()) {
             //Log.d(LOG_TAG, "Folder");
-            popup.getMenuInflater().inflate(R.menu.folder_popup_menu, popup.getMenu());
+
+            items = folderMenuItems;
         } else {
             //Log.d(LOG_TAG, "Image");
-            popup.getMenuInflater().inflate(R.menu.file_popup_menu, popup.getMenu());
+
+            items = photoMenuItems;
         }
+
+        /*Load items to menu*/
+        for (String item : items) {
+            popup.getMenu().add(item);
+        }
+
         //registering popup with OnMenuItemClickListener
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {

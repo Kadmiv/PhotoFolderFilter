@@ -18,14 +18,17 @@ import java.net.URI;
 @Entity
 public class UniversalFolder extends File {
 
+
     @PrimaryKey(autoGenerate = true)
     int id;
+    String pathName;
     private String folderName;
     private String picturePath;
     private String tagFolder;
 
-    public UniversalFolder(@NonNull String pathname) {
-        super(pathname);
+    public UniversalFolder(@NonNull String pathName) {
+        super(pathName);
+        this.pathName = pathName;
     }
 
     @Ignore

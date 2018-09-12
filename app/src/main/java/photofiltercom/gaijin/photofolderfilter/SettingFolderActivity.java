@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 public class SettingFolderActivity extends AppCompatActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         //Log.d(LOG_TAG, "onCreate" + MAIN);
         /*Component initialization*/

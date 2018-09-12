@@ -103,29 +103,12 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-
-    @Override
     protected void onResume() {
         super.onResume();
         if (new File(mainFolderPath).exists()) {
             updateRecycleView();
         }
     }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-    }
-
 
     /**
      * This function causes the intent of Camera from MediaStore

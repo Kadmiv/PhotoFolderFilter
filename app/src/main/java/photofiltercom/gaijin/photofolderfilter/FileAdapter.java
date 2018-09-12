@@ -14,6 +14,12 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.ArrayList;
 
+import butterknife.BindInt;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnLongClick;
+
 /**
  * Created by Kachulyak Ivan.
  * <p>
@@ -63,7 +69,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull final FileViewHolder holder, final int position) {
-        File file = new File (fileArrayList.get(position));
+        File file = new File(fileArrayList.get(position));
         holder.name.setText(file.getName());
 
         if (isPicture(file.getName())) {
@@ -71,17 +77,17 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-            int reqWidth = 100;
-            int reqHeight = 100;
+            int reqWidth = 70;
+            int reqHeight = 70;
             // Resize images for quick load new activity and minimal memory use
             options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
             options.inJustDecodeBounds = false;
             holder.image.setImageBitmap(BitmapFactory.decodeFile(file.getAbsolutePath(), options));
         } else {
-            if (!file.isDirectory()) {
-                holder.image.setImageResource(R.drawable.file);
-            } else {
+            if (file.isDirectory()) {
                 holder.image.setImageResource(R.drawable.folder);
+            } else {
+                holder.image.setImageResource(R.drawable.file);
             }
         }
         holder.container.setLayoutParams(new ViewGroup.LayoutParams(width, width));
@@ -140,38 +146,32 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
     public class FileViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         /* These are the variables that are included in the Cardview*/
+        @BindView(R.id.group_name)
         TextView name;
+        @BindView(R.id.imag_card)
         ImageView image;
+        @BindView(R.id.group_card)
         CardView card;
+        @BindView(R.id.foder_card_layout)
         ConstraintLayout container;
 
         public FileViewHolder(View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.group_name);
-            image = itemView.findViewById(R.id.imag_card);
-            card = itemView.findViewById(R.id.group_card);
-            container = itemView.findViewById(R.id.foder_card_layout);
-
-            card.setOnClickListener(this);
-            card.setOnLongClickListener(this);
-            image.setOnClickListener(this);
-            image.setOnLongClickListener(this);
+            ButterKnife.bind(this, itemView);
         }
 
         public String getName() {
             return (String) name.getText();
         }
 
-        @Override
+        @OnClick({R.id.imag_card, R.id.group_card})
         public void onClick(View view) {
-
             if (ItemClickListener != null) {
                 ItemClickListener.onItemClick(view, getAdapterPosition());
             }
-
         }
 
-        @Override
+        @OnLongClick({R.id.imag_card, R.id.group_card})
         public boolean onLongClick(View view) {
             if (OnLongClickListener != null) {
                 OnLongClickListener.onLongClick(view, getAdapterPosition());

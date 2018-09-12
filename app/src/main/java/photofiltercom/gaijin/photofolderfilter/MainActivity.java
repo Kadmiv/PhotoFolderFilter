@@ -5,13 +5,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -22,11 +23,12 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import photofiltercom.gaijin.photofolderfilter.folderbd.AppDB;
 
-import static java.lang.Thread.sleep;
-
-public class MainActivity extends MyActivity implements View.OnClickListener, FileAdapter.OnItemClickListener, FileAdapter.OnLongClickListener {
+public class MainActivity extends MyActivity implements FileAdapter.OnItemClickListener, FileAdapter.OnLongClickListener {
 
     /*For log text, name of activity*/
     private String MAIN = " MainActivity";
@@ -36,7 +38,11 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Fi
 
 
     /*Component for activity*/
-    private FloatingActionButton addGroup;
+    @BindView(R.id.group_view)
+    RecyclerView groupView;
+    @BindView(R.id.addGroup)
+    FloatingActionButton addGroup;
+
     private RecyclerView recyclerView;
     private FileAdapter adapter;
     private RecyclerView.LayoutManager manager;
@@ -51,8 +57,8 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Fi
         //Log.d(LOG_TAG, "onCreate" + MAIN);
         /*Component initialization*/
         setContentView(R.layout.activity_main);
-        addGroup = (FloatingActionButton) findViewById(R.id.addGroup);
-        addGroup.setOnClickListener(this);
+        ButterKnife.bind(this);
+
         createRecycleView();
         appDatabase = AppDB.getDatabase(getApplicationContext());
     }
@@ -140,45 +146,10 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Fi
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(LOG_TAG, "Pause" + MAIN);
-    }
-
-    @Override
     protected void onStop() {
         scanningFolder(mainFolderPath);
         super.onStop();
         Log.d(LOG_TAG, "Stop");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.d(LOG_TAG, "Restart" + MAIN);
-    }
-
-    @Override
-    public void onClick(View v) {
-        /*Check permissions */
-        if (hasPermissions()) {
-            // our app has permissions.
-            switch (v.getId()) {
-                case R.id.addGroup:
-                    mainFolder = getPreferences(MODE_PRIVATE);
-                    /*Check root user folder in DCIM. Create them is not exist*/
-                    if (mainFolderPath == "") {
-                        createFolder(this, "Enter name of main folder", 1);
-                    } else {
-                        /*Creation of group folders*/
-                        createFolder(this, "Enter name of group folder", 2);
-                    }
-                    break;
-            }
-        } else {
-            //our app doesn't have permissions, so we requesting permissions again.
-            requestPermissionWithRationale();
-        }
     }
 
     @Override
@@ -204,6 +175,32 @@ public class MainActivity extends MyActivity implements View.OnClickListener, Fi
                 break;
         }
 
+    }
+
+    @OnClick(R.id.group_view)
+    public void onGroupViewClicked() {
+    }
+
+    @OnClick(R.id.addGroup)
+    public void onAddGroupClicked() {
+        if (hasPermissions()) {
+
+            mainFolder = getPreferences(MODE_PRIVATE);
+            /*Check root user folder in DCIM. Create them is not exist*/
+            if (mainFolderPath == "") {
+                createFolder(this, "Enter name of main folder", 1);
+            } else {
+                /*Creation of group folders*/
+                createFolder(this, "Enter name of group folder", 2);
+            }
+        } else {
+            //our app doesn't have permissions, so we requesting permissions again.
+            requestPermissionWithRationale();
+        }
+    }
+
+    @OnClick(R.id.activity_view)
+    public void onActivityViewClicked() {
     }
 
 

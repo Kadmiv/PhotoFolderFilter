@@ -10,28 +10,31 @@
         android:id="@+id/folder_name_setting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginEnd="228dp"
+        android:layout_marginTop="16dp"
         android:text="TextView"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="151dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/absolute_path_folder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginEnd="228dp"
+        android:layout_marginTop="12dp"
         android:text="TextView"
-        app:layout_constraintTop_toBottomOf="@+id/folder_name_setting"
-        tools:layout_editor_absoluteX="151dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/folder_name_setting" />
 
     <TextView
         android:id="@+id/size_folder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginEnd="228dp"
+        android:layout_marginTop="12dp"
         android:text="TextView"
-        app:layout_constraintTop_toBottomOf="@+id/absolute_path_folder"
-        tools:layout_editor_absoluteX="151dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/absolute_path_folder" />
 
     <TextView
         android:id="@+id/t_size"
@@ -39,10 +42,10 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="SIze : "
+        android:layout_marginTop="12dp"
+        android:text="Size : "
         app:layout_constraintEnd_toStartOf="@+id/size_folder"
-        app:layout_constraintHorizontal_bias="0.458"
+        app:layout_constraintHorizontal_bias="0.112"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/t_path" />
 
@@ -52,9 +55,10 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="Name : "
         app:layout_constraintEnd_toStartOf="@+id/folder_name_setting"
+        app:layout_constraintHorizontal_bias="0.073"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -64,9 +68,10 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:text="Path : "
         app:layout_constraintEnd_toStartOf="@+id/absolute_path_folder"
+        app:layout_constraintHorizontal_bias="0.104"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/t_name" />
 </android.support.constraint.ConstraintLayout>

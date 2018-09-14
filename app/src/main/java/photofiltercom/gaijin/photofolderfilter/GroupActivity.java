@@ -19,10 +19,10 @@ import android.widget.Toast;
 import java.io.File;
 
 import butterknife.BindView;
-import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnLongClick;
+import photofiltercom.gaijin.photofolderfilter.recyclerview.FileAdapter;
 
 /**
  * Created by Kachulyak Ivan.
@@ -78,7 +78,7 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
         if (folder.exists()) {
             filesList = loadFilesAndFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
-                adapter = new FileAdapter(filesList);
+                adapter = new FileAdapter(filesList,this);
                 recyclerView.setAdapter(adapter);
             }
         }

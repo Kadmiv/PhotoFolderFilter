@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -27,6 +26,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import photofiltercom.gaijin.photofolderfilter.folderbd.AppDB;
+import photofiltercom.gaijin.photofolderfilter.recyclerview.FileAdapter;
 
 public class MainActivity extends MyActivity implements FileAdapter.OnItemClickListener, FileAdapter.OnLongClickListener {
 
@@ -39,11 +39,10 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
 
     /*Component for activity*/
     @BindView(R.id.group_view)
-    RecyclerView groupView;
+    RecyclerView recyclerView;
     @BindView(R.id.addGroup)
     FloatingActionButton addGroup;
 
-    private RecyclerView recyclerView;
     private FileAdapter adapter;
     private RecyclerView.LayoutManager manager;
 
@@ -86,7 +85,7 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
         int screenWidth = displaymetrics.widthPixels;
 
         /*Initialization of recycle view*/
-        recyclerView = findViewById(R.id.group_view);
+       // recyclerView = findViewById(R.id.group_view);
         recyclerView.addOnScrollListener(new CustomScrollListener());
         //manager = new LinearLayoutManager(this); //fixme Just in case
         manager = new GridLayoutManager(this, 2);
@@ -105,7 +104,7 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
         if (folder.exists()) {
             filesList = loadFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
-                adapter = new FileAdapter(filesList);
+                adapter = new FileAdapter(filesList,this);
                 recyclerView.setAdapter(adapter);
             }
         }

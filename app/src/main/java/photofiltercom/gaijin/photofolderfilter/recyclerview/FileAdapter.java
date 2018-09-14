@@ -1,5 +1,6 @@
-package photofiltercom.gaijin.photofolderfilter;
+package photofiltercom.gaijin.photofolderfilter.recyclerview;
 
+import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
@@ -14,11 +15,12 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.ArrayList;
 
-import butterknife.BindInt;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnLongClick;
+import it.sephiroth.android.library.picasso.Picasso;
+import photofiltercom.gaijin.photofolderfilter.R;
 
 /**
  * Created by Kachulyak Ivan.
@@ -39,6 +41,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
     private OnItemClickListener ItemClickListener;
     private OnLongClickListener OnLongClickListener;
     private static int width = 0;
+    private Context context;
 
 
     public FileAdapter() {
@@ -49,8 +52,9 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
         this.width = (int) ((width - width * 0.01) / 2);
     }
 
-    public FileAdapter(ArrayList<String> taskArrayList) {
+    public FileAdapter(ArrayList<String> taskArrayList, Context context) {
         this.fileArrayList = taskArrayList;
+        this.context = context;
     }
 
     public void setFileArrayList(ArrayList<String> fileArrayList) {
@@ -72,17 +76,15 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
         File file = new File(fileArrayList.get(position));
         holder.name.setText(file.getName());
 
+        int reqWidth = 240;
+        int reqHeight = 240;
+
         if (isPicture(file.getName())) {
             // Load photo to view
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-            int reqWidth = 70;
-            int reqHeight = 70;
-            // Resize images for quick load new activity and minimal memory use
-            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-            options.inJustDecodeBounds = false;
-            holder.image.setImageBitmap(BitmapFactory.decodeFile(file.getAbsolutePath(), options));
+            Picasso.with(context)
+                    .load(file)
+                    .resize(reqWidth, reqHeight)
+                    .into(holder.image);
         } else {
             if (file.isDirectory()) {
                 holder.image.setImageResource(R.drawable.folder);
@@ -93,29 +95,6 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
         holder.container.setLayoutParams(new ViewGroup.LayoutParams(width, width));
 
         //holder.menuButton.setImageResource(task.getImage_id());
-    }
-
-    public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
     }
 
     @Override
@@ -141,6 +120,14 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     public void SetOnLongClickListener(final OnLongClickListener tasksOnLongClickListener) {
         this.OnLongClickListener = tasksOnLongClickListener;
+    }
+
+    private static boolean isPicture(String file) {
+
+        if (file.contains(".jpeg") || file.contains(".jpg") || file.contains(".png") || file.contains(".bmp")) {
+            return true;
+        } else
+            return false;
     }
 
     public class FileViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
@@ -178,13 +165,5 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
             }
             return true;
         }
-    }
-
-    private static boolean isPicture(String file) {
-
-        if (file.contains(".jpeg") || file.contains(".jpg") || file.contains(".png") || file.contains(".bmp")) {
-            return true;
-        } else
-            return false;
     }
 }

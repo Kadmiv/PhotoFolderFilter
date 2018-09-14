@@ -49,4 +49,5 @@ dependencies {
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
     compile 'com.jakewharton:butterknife:8.6.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
+    implementation 'it.sephiroth.android.library.picasso:picasso:2.5.2.4b'
 }

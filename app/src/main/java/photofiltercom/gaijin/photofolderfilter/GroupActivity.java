@@ -38,8 +38,9 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
     /*Component for activity*/
     @BindView(R.id.add_photo)
     FloatingActionButton addPhoto;
+    @BindView(R.id.picture_view)
+    RecyclerView recyclerView;
 
-    private RecyclerView recyclerView;
     private FileAdapter adapter;
     private RecyclerView.LayoutManager manager;
 

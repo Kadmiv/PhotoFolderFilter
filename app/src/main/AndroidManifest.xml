@@ -8,10 +8,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        android:allowBackup="true"
         android:exported="false"
         android:grantUriPermissions="true"
-
-        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -24,10 +23,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GroupActivity">
-        </activity>
-        <activity android:name=".SettingFolderActivity">
-        </activity>
+        <activity android:name=".GroupActivity"></activity>
+        <activity android:name=".SettingFolderActivity"></activity>
     </application>
 
 </manifest>

@@ -410,19 +410,12 @@ public class MyActivity extends AppCompatActivity {
 
     private void sendNeedUpdate() {
         EventBus.getDefault().post(new NeedUpdate());
+        Log.d("12","Event was send - update");
     }
 
     private void sendNeedCreate() {
         EventBus.getDefault().post(new NeedCreate());
-    }
-
-    @Subscribe
-    public void updateRecycleView(NeedUpdate needUpdate) {
-    }
-
-    @Subscribe
-    public void createRecycleView(NeedCreate needCreate) {
-
+        Log.d("12","Event was send - create");
     }
 
 //    /**

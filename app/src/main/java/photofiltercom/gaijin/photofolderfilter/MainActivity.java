@@ -60,7 +60,6 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        createRecycleView(new NeedCreate());
     }
 
     /**
@@ -77,9 +76,9 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
     /**
      * Function of recycle view creation
      */
-    @Override
+    @Subscribe
     public void createRecycleView(NeedCreate needCreate) {
-
+        Log.d("12", "Event was get - create");
         /*Get display metrics for calculation of normal view*/
 //        DisplayMetrics displaymetrics = new DisplayMetrics();
 //        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
@@ -118,10 +117,11 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
      * Function of updating of recycle view
      * View will upload and new view card, if was be create new folders or files
      */
-    @Override
+    @Subscribe
     public void updateRecycleView(NeedUpdate needUpdate) {
+        Log.d("12", "Event was get - update");
         filesList = loadFolders(mainFolderPath);
-        if (filesList.size() > 0) {
+        if (adapter != null) {
             adapter.setFileArrayList(filesList);
         } else {
             createRecycleView(new NeedCreate());
@@ -134,6 +134,9 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
         super.onStart();
         // Check permission and ask user
         checkPermission(permissionsList);
+        if (hasPermissions()) {
+            createRecycleView(new NeedCreate());
+        }
     }
 
     @Override
@@ -187,7 +190,7 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
 
             mainFolder = getPreferences(MODE_PRIVATE);
             /*Check root user folder in DCIM. Create them is not exist*/
-            if (mainFolderPath == "") {
+            if (!(new File(mainFolderPath).exists())) {
                 createFolder(this, "Enter name of main folder", 1);
             } else {
                 /*Creation of group folders*/

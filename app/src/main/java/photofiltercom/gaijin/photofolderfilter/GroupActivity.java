@@ -17,6 +17,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
 
@@ -74,7 +75,7 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
     /**
      * Function of recycle view creation
      */
-    @Override
+    @Subscribe
     public void createRecycleView(NeedCreate needCreate) {
         /*Initialization of recycle view*/
         recyclerView = findViewById(R.id.picture_view);
@@ -83,8 +84,6 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
         manager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(manager);
         recyclerView.setHasFixedSize(true);
-        adapter = new FileAdapter();
-        recyclerView.setAdapter(adapter);
 
         /*Load name of group folder*/
         File folder = new File(mainFolderPath);
@@ -92,25 +91,24 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
             filesList = loadFilesAndFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
                 adapter = new FileAdapter(filesList, this);
+                adapter.SetOnItemClickListener(this);
+                adapter.SetOnLongClickListener(this);
                 recyclerView.setAdapter(adapter);
             }
         }
-
-        adapter.SetOnItemClickListener(this);
-        adapter.SetOnLongClickListener(this);
     }
 
     /**
      * Function of updating of recycle view
      * View will upload and new view card, if was be create new folders or files
      */
-    @Override
+    @Subscribe
     public void updateRecycleView(NeedUpdate needUpdate) {
         filesList = loadFilesAndFolders(mainFolderPath);
-        if (filesList.size() > 0) {
+        if (adapter != null) {
             adapter.setFileArrayList(filesList);
         } else {
-        createRecycleView( new NeedCreate());
+            createRecycleView(new NeedCreate());
         }
     }
 

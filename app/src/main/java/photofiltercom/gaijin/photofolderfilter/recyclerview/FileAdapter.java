@@ -1,11 +1,11 @@
 package photofiltercom.gaijin.photofolderfilter.recyclerview;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +40,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     private OnItemClickListener ItemClickListener;
     private OnLongClickListener OnLongClickListener;
-    private static int width = 0;
+    //private static int width = 0;
     private Context context;
 
 
@@ -48,9 +48,9 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     }
 
-    public FileAdapter(int width) {
-        this.width = (int) ((width - width * 0.01) / 2);
-    }
+//    public FileAdapter(int width) {
+//        this.width = (int) ((width - width * 0.01) / 2);
+//    }
 
     public FileAdapter(ArrayList<String> taskArrayList, Context context) {
         this.fileArrayList = taskArrayList;
@@ -59,13 +59,22 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     public void setFileArrayList(ArrayList<String> fileArrayList) {
         this.fileArrayList = fileArrayList;
+        this.notifyDataSetChanged();
+        Log.d("12", "notifyDataSetChanged()");
+    }
+
+    public void updateItem(int position) {
+
+        this.notifyItemChanged(position);
+        Log.d("12", "Position is update");
+
     }
 
 
     @NonNull
     @Override
     public FileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.folder_group, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card, parent, false);
         FileViewHolder holder = new FileViewHolder(view);
 
         return holder;
@@ -76,14 +85,16 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
         File file = new File(fileArrayList.get(position));
         holder.name.setText(file.getName());
 
-        int reqWidth = 240;
+        int reqWidth = 320;
         int reqHeight = 240;
 
         if (isPicture(file.getName())) {
             // Load photo to view
             Picasso.with(context)
                     .load(file)
+                    .placeholder(R.drawable.file)
                     .resize(reqWidth, reqHeight)
+                    .centerCrop()
                     .into(holder.image);
         } else {
             if (file.isDirectory()) {
@@ -92,7 +103,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
                 holder.image.setImageResource(R.drawable.file);
             }
         }
-        holder.container.setLayoutParams(new ViewGroup.LayoutParams(width, width));
+//        holder.container.setLayoutParams(new ViewGroup.LayoutParams(width, width));
 
         //holder.menuButton.setImageResource(task.getImage_id());
     }

@@ -16,12 +16,16 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnLongClick;
+import photofiltercom.gaijin.photofolderfilter.events.NeedCreate;
+import photofiltercom.gaijin.photofolderfilter.events.NeedUpdate;
 import photofiltercom.gaijin.photofolderfilter.recyclerview.FileAdapter;
 
 /**
@@ -32,8 +36,7 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
     /*Tags for floatButton addPhoto, for change bitmap of button*/
     private static final String CAMERA = "CAMERA";
     private static final String FOLDER = "FOLDER";
-    /*Request code for intent filter*/
-    private final int REQUEST_CODE_PHOTO = 123;
+
 
     /*Component for activity*/
     @BindView(R.id.add_photo)
@@ -56,18 +59,27 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
         /*Get path to main folder from intent*/
         mainFolderPath = getIntent().getStringExtra(INTENT_PATH);
 
-        createRecycleView();
+        createRecycleView(new NeedCreate());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (new File(mainFolderPath).exists()) {
+            updateRecycleView(new NeedUpdate());
+        }
+        // EventBus.getDefault().register(this);
     }
 
     /**
      * Function of recycle view creation
      */
-    @MyAnnotation
-    protected void createRecycleView() {
+    @Override
+    public void createRecycleView(NeedCreate needCreate) {
         /*Initialization of recycle view*/
         recyclerView = findViewById(R.id.picture_view);
         //manager = new LinearLayoutManager(this);
-        recyclerView.addOnScrollListener(new CustomScrollListener());
+        //recyclerView.addOnScrollListener(new CustomScrollListener());
         manager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(manager);
         recyclerView.setHasFixedSize(true);
@@ -79,7 +91,7 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
         if (folder.exists()) {
             filesList = loadFilesAndFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
-                adapter = new FileAdapter(filesList,this);
+                adapter = new FileAdapter(filesList, this);
                 recyclerView.setAdapter(adapter);
             }
         }
@@ -92,50 +104,20 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
      * Function of updating of recycle view
      * View will upload and new view card, if was be create new folders or files
      */
-    @MyAnnotation(type = 2)
-    protected void updateRecycleView() {
+    @Override
+    public void updateRecycleView(NeedUpdate needUpdate) {
         filesList = loadFilesAndFolders(mainFolderPath);
         if (filesList.size() > 0) {
             adapter.setFileArrayList(filesList);
-            adapter.notifyDataSetChanged();
         } else {
-            createRecycleView();
+        createRecycleView( new NeedCreate());
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (new File(mainFolderPath).exists()) {
-            updateRecycleView();
-        }
-    }
 
-    /**
-     * This function causes the intent of Camera from MediaStore
-     *
-     * @param path - path for saving photo
-     * @param name - name of new photo
-     */
-    protected void makePhoto(String path, String name) {
-        try {
-            File file = new File(path, name);
-            // Get uri for photo
-            Uri mOutputFileUri = Uri.fromFile(file);
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            // Put uri to intent
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, mOutputFileUri);
-            Log.d(LOG_TAG, "Put extra name = " + name);
-            // This part of code need for normal work on android 6+
-            StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-            StrictMode.setVmPolicy(builder.build());
-            startActivityForResult(intent, REQUEST_CODE_PHOTO);
-        } catch (ActivityNotFoundException e) {
-            String errorMessage = "Error. Camera is not responding";
-            Toast toast = Toast
-                    .makeText(this, errorMessage, Toast.LENGTH_SHORT);
-            toast.show();
-        }
     }
 
 
@@ -146,21 +128,21 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
         if (requestCode == REQUEST_CODE_PHOTO) {
             if (resultCode == RESULT_OK) {
                 if (intent == null) {
-                    Log.d(LOG_TAG, "Intent is null");
+                    Log.d("12", "Intent is null");
                 } else {
-                    Log.d(LOG_TAG, "Photo uri: " + intent.getData());
+                    Log.d("12", "Photo uri: " + intent.getData());
                     Bundle bndl = intent.getExtras();
                     if (bndl != null) {
                         Object obj = intent.getExtras().get("data");
                         if (obj instanceof Bitmap) {
                             Bitmap bitmap = (Bitmap) obj;
-                            Log.d(LOG_TAG, "bitmap " + bitmap.getWidth() + " x "
+                            Log.d("12", "bitmap " + bitmap.getWidth() + " x "
                                     + bitmap.getHeight());
                         }
                     }
                 }
             } else if (resultCode == RESULT_CANCELED) {
-                Log.d(LOG_TAG, "Canceled");
+                Log.d("12", "Canceled");
             }
         }
     }
@@ -174,12 +156,12 @@ public class GroupActivity extends MyActivity implements FileAdapter.OnItemClick
                 Intent intent = null;
                 File checkFile = new File(filesList.get(position));
                 if (checkFile.isDirectory()) {
-                    Log.d(LOG_TAG, "Folder");
+                    Log.d("12", "Folder");
                     intent = new Intent(this, GroupActivity.class);
                     intent.putExtra(INTENT_PATH, filesList.get(position));
                     startActivity(intent);
                 } else {
-                    Log.d(LOG_TAG, "Image");
+                    Log.d("12", "Image");
                     openPicture(filesList.get(position));
                 }
                 break;

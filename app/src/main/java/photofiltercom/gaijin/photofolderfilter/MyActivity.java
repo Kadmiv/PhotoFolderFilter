@@ -1,5 +1,6 @@
 package photofiltercom.gaijin.photofolderfilter;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +19,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.Toast;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
 import java.lang.annotation.ElementType;
@@ -29,7 +34,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import photofiltercom.gaijin.photofolderfilter.folderbd.AppDB;
+import photofiltercom.gaijin.photofolderfilter.events.NeedCreate;
+import photofiltercom.gaijin.photofolderfilter.events.NeedUpdate;
 
 /**
  * Created by Kachulyak Ivan.
@@ -38,12 +44,14 @@ import photofiltercom.gaijin.photofolderfilter.folderbd.AppDB;
  */
 public class MyActivity extends AppCompatActivity {
 
-    /*Log tag*/
-    protected static final String LOG_TAG = "MyLog";
     /**
      * Key for getting path to root user folder from shared preferences
      */
     protected static final String MAIN_FOLDER = "MAIN_FOLDER";
+
+    /*Request code for intent filter*/
+    protected final int REQUEST_CODE_PHOTO = 123;
+
     /**
      * Path to root folder for saving else folder group and files
      */
@@ -58,15 +66,26 @@ public class MyActivity extends AppCompatActivity {
     protected ArrayList<String> filesList = null;
 
     protected List<String> folderMenuItems = Arrays.asList("Open", "Delete", "Copy", "Past", "Settings");
-    protected List<String> photoMenuItems = Arrays.asList("Open", "Delete");
+    protected List<String> photoMenuItems = Arrays.asList("Open", "Delete", "Retake");
 
-    // Database of application
-    protected static AppDB appDatabase;
 
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface MyAnnotation {
-        int type() default 1;
+//    @Target(ElementType.METHOD)
+//    @Retention(RetentionPolicy.RUNTIME)
+//    public @interface MyAnnotation {
+//        int type() default 1;
+//    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
     }
 
     /**
@@ -174,7 +193,6 @@ public class MyActivity extends AppCompatActivity {
                         }
                         break;
                     case "Delete":
-                        Log.d(LOG_TAG, "Delete");
                         String infos = "";
                         // Search all file and folders in folder
                         if (fileForCheck.isDirectory()) {
@@ -187,17 +205,22 @@ public class MyActivity extends AppCompatActivity {
                         }
                         Toast.makeText((Context) activity, infos, Toast.LENGTH_SHORT).show();
                         break;
+
+                    case "Retake":
+
+                        makePhoto(fileForCheck);
+                        break;
                     // FIXME: 09.09.2018 Next for future version
                     case "Copy":
-                        Log.d(LOG_TAG, "Copy");
+                        Log.d("12", "Copy");
 
                         break;
                     case "Past":
-                        Log.d(LOG_TAG, "Past");
+                        Log.d("12", "Past");
 
                         break;
                     case "Settings":
-                        Log.d(LOG_TAG, "Setting");
+                        Log.d("12", "Setting");
                         Intent intent = null;
                         //Log.d(LOG_TAG, "Folder");
                         intent = new Intent((Context) activity, SettingFolderActivity.class);
@@ -207,7 +230,8 @@ public class MyActivity extends AppCompatActivity {
                     default:
 
                 }
-                doAnnotationMethod(activity, 2);
+                sendNeedUpdate();
+
                 return true;
             }
         });
@@ -255,7 +279,7 @@ public class MyActivity extends AppCompatActivity {
                                     editor.putString(MAIN_FOLDER, mainFolderPath);
                                     editor.commit();
                                     //Log.d(LOG_TAG, "Entered name = " + mainFolderPath);
-                                    doAnnotationMethod(activity, typeOfDialog);
+                                    sendNeedCreate();
                                     dialog.cancel();
                                 }
                             });
@@ -268,7 +292,7 @@ public class MyActivity extends AppCompatActivity {
                                     String name = (String) folderName.getText().toString();
                                     String newFolder = makeFolder(mainFolderPath, name);
                                     //Log.d(LOG_TAG, "New folder group " + newFolder);
-                                    doAnnotationMethod(activity, typeOfDialog);
+                                    sendNeedUpdate();
                                     dialog.cancel();
                                 }
                             })
@@ -288,6 +312,43 @@ public class MyActivity extends AppCompatActivity {
 
         }
 
+    }
+
+    /**
+     * This function causes the intent of Camera from MediaStore
+     */
+    protected void makePhoto(File file) {
+        try {
+            // Get uri for photo
+            Uri mOutputFileUri = Uri.fromFile(file);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            // Put uri to intent
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, mOutputFileUri);
+            Log.d("12", "Put extra name = " + file.getName());
+            // This part of code need for normal work on android 6+
+            StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+            StrictMode.setVmPolicy(builder.build());
+            startActivityForResult(intent, REQUEST_CODE_PHOTO);
+        } catch (ActivityNotFoundException e) {
+            String errorMessage = "Error. Camera is not responding";
+            Toast toast = Toast
+                    .makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+
+    }
+
+
+    /**
+     * This function causes the intent of Camera from MediaStore
+     *
+     * @param path - path for saving photo
+     * @param name - name of new photo
+     */
+    protected void makePhoto(String path, String name) {
+        File file = new File(path, name);
+        makePhoto(file);
     }
 
 
@@ -347,27 +408,57 @@ public class MyActivity extends AppCompatActivity {
         }
     }
 
+    private void sendNeedUpdate() {
+        EventBus.getDefault().post(new NeedUpdate());
+    }
+
+    private void sendNeedCreate() {
+        EventBus.getDefault().post(new NeedCreate());
+    }
+
+    @Subscribe
+    public void updateRecycleView(NeedUpdate needUpdate) {
+    }
+
+    @Subscribe
+    public void createRecycleView(NeedCreate needCreate) {
+
+    }
+
+//    /**
+//     * This function allows to run functions of other classes with certain annotations
+//     *
+//     * @param object         - object, which method will be run
+//     * @param typeAnnotation - type number of annotation
+//     */
+//    void doAnnotationMethod(Object object, int typeAnnotation) {
+//        Class classObject = object.getClass();
+//        for (Method method : classObject.getDeclaredMethods()) {
+//            MyAnnotation annotation = (MyAnnotation) method.getAnnotation(MyAnnotation.class);
+//
+//            if (annotation != null && (annotation.type() == typeAnnotation)) {
+//                try {
+//                    method.invoke(object);
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                } catch (InvocationTargetException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }
+//        }
+//    }
+
     /**
-     * This function allows to run functions of other classes with certain annotations
+     * Function of scanning all files and folder in root user folder
+     * This function need for normal work with folders and files after connection phone to PC with using USB
      *
-     * @param object         - object, which method will be run
-     * @param typeAnnotation - type number of annotation
+     * @param mainFolderPath - path to folder for scanning
      */
-    void doAnnotationMethod(Object object, int typeAnnotation) {
-        Class classObject = object.getClass();
-        for (Method method : classObject.getDeclaredMethods()) {
-            MyAnnotation annotation = (MyAnnotation) method.getAnnotation(MyAnnotation.class);
-
-            if (annotation != null && (annotation.type() == typeAnnotation)) {
-                try {
-                    method.invoke(object);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }
+    protected void scanningFolder(String mainFolderPath) {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        Uri contentUri = Uri.fromFile(new File(mainFolderPath));
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
     }
 }

@@ -14,10 +14,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,8 +26,10 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import photofiltercom.gaijin.photofolderfilter.folderbd.AppDB;
+import photofiltercom.gaijin.photofolderfilter.events.NeedCreate;
+import photofiltercom.gaijin.photofolderfilter.events.NeedUpdate;
 import photofiltercom.gaijin.photofolderfilter.recyclerview.FileAdapter;
+
 
 public class MainActivity extends MyActivity implements FileAdapter.OnItemClickListener, FileAdapter.OnLongClickListener {
 
@@ -35,7 +38,6 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
 
     /*List of Permissions for user*/
     private static ArrayList<String> permissionsList;
-
 
     /*Component for activity*/
     @BindView(R.id.group_view)
@@ -58,8 +60,7 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        createRecycleView();
-        appDatabase = AppDB.getDatabase(getApplicationContext());
+        createRecycleView(new NeedCreate());
     }
 
     /**
@@ -76,25 +77,25 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
     /**
      * Function of recycle view creation
      */
-    @MyAnnotation
-    protected void createRecycleView() {
+    @Override
+    public void createRecycleView(NeedCreate needCreate) {
 
         /*Get display metrics for calculation of normal view*/
-        DisplayMetrics displaymetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-        int screenWidth = displaymetrics.widthPixels;
+//        DisplayMetrics displaymetrics = new DisplayMetrics();
+//        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+//        int screenWidth = displaymetrics.widthPixels;
 
         /*Initialization of recycle view*/
-       // recyclerView = findViewById(R.id.group_view);
-        recyclerView.addOnScrollListener(new CustomScrollListener());
+        // recyclerView = findViewById(R.id.group_view);
+        //recyclerView.addOnScrollListener(new CustomScrollListener());
         //manager = new LinearLayoutManager(this); //fixme Just in case
         manager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(manager);
         recyclerView.setHasFixedSize(true);
 
         /*Initialization of adapter for  recycle view*/
-        adapter = new FileAdapter(screenWidth);
-        recyclerView.setAdapter(adapter);
+//        adapter = new FileAdapter(screenWidth);
+//        recyclerView.setAdapter(adapter);
 
         /*Load name of root user folder*/
         mainFolder = getPreferences(MODE_PRIVATE);
@@ -104,26 +105,26 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
         if (folder.exists()) {
             filesList = loadFolders(folder.getAbsolutePath());
             if (!filesList.isEmpty()) {
-                adapter = new FileAdapter(filesList,this);
+                adapter = new FileAdapter(filesList, this);
+                adapter.SetOnItemClickListener(this);
+                adapter.SetOnLongClickListener(this);
                 recyclerView.setAdapter(adapter);
             }
         }
-        adapter.SetOnItemClickListener(this);
-        adapter.SetOnLongClickListener(this);
+
     }
 
     /**
      * Function of updating of recycle view
      * View will upload and new view card, if was be create new folders or files
      */
-    @MyAnnotation(type = 2)
-    protected void updateRecycleView() {
+    @Override
+    public void updateRecycleView(NeedUpdate needUpdate) {
         filesList = loadFolders(mainFolderPath);
         if (filesList.size() > 0) {
             adapter.setFileArrayList(filesList);
-            adapter.notifyDataSetChanged();
         } else {
-            createRecycleView();
+            createRecycleView(new NeedCreate());
         }
     }
 
@@ -138,9 +139,9 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(LOG_TAG, "Resume" + MAIN);
+        Log.d("12", "Resume" + MAIN);
         if (new File(mainFolderPath).exists()) {
-            updateRecycleView();
+            updateRecycleView(new NeedUpdate());
         }
     }
 
@@ -148,7 +149,7 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
     protected void onStop() {
         scanningFolder(mainFolderPath);
         super.onStop();
-        Log.d(LOG_TAG, "Stop");
+        Log.d("12", "Stop");
     }
 
     @Override
@@ -329,17 +330,5 @@ public class MainActivity extends MyActivity implements FileAdapter.OnItemClickL
         }
     }
 
-    /**
-     * Function of scanning all files and folder in root user folder
-     * This function need for normal work with folders and files after connection phone to PC with using USB
-     *
-     * @param mainFolderPath - path to folder for scanning
-     */
-    protected void scanningFolder(String mainFolderPath) {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        Uri contentUri = Uri.fromFile(new File(mainFolderPath));
-        mediaScanIntent.setData(contentUri);
-        this.sendBroadcast(mediaScanIntent);
-    }
 }
 
